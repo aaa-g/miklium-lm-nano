@@ -257,6 +257,7 @@
             border-radius: var(--radius-card);
             line-height: 1.6;
             word-wrap: break-word;
+            white-space: pre-wrap;
             animation: slideUp 0.4s var(--transition-smooth);
         }
 
@@ -507,6 +508,17 @@
             color: #e6edf3;
         }
 
+        /* Think block styling */
+        .think-block {
+            display: block;
+            font-size: 0.88rem;
+            color: var(--text-tertiary);
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            font-style: italic;
+        }
+
         /* Loading state */
         .loading {
             opacity: 0.6;
@@ -654,7 +666,7 @@
                 try {
                     await lm.generate(prompt, 300, 0.4, async (chunk) => {
                         fullResponse += chunk;
-                        bubble.innerHTML = escapeHtml(fullResponse);
+                        bubble.innerHTML = formatMessage(fullResponse);
                         scrollToBottom();
                         // Yield to UI thread to allow rendering
                         await new Promise(r => setTimeout(r, 0));
@@ -662,7 +674,7 @@
                 } catch (e) {
                     console.error("Generation error:", e);
                     fullResponse += "\n[Error generating response]";
-                    bubble.innerHTML = escapeHtml(fullResponse);
+                    bubble.innerHTML = formatMessage(fullResponse);
                 }
 
                 isLoading = false;
@@ -683,7 +695,7 @@
 
             messageDiv.innerHTML = `
         <div class="message-content">
-          <div class="message-bubble">${escapeHtml(content)}</div>
+          <div class="message-bubble">${role === 'assistant' ? formatMessage(content) : escapeHtml(content)}</div>
           <div class="message-time">${time}</div>
         </div>
       `;
@@ -709,6 +721,34 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        function formatMessage(text) {
+            // First escape to prevent XSS
+            let formatted = escapeHtml(text);
+
+            // Handle <think> tags
+            // Use regex that handles the escaped version since we escaped above
+            formatted = formatted.replace(/&lt;think&gt;/gi, '<span class="think-block">');
+            formatted = formatted.replace(/&lt;\/think&gt;/gi, '</span>');
+
+            // Hide special tags
+            const specialTags = [
+                /&lt;user&gt;/gi, /&lt;\/user&gt;/gi,
+                /&lt;bot&gt;/gi, /&lt;\/bot&gt;/gi,
+                /&lt;eos&gt;/gi, /&lt;bos&gt;/gi,
+                /&lt;assistant&gt;/gi, /&lt;\/assistant&gt;/gi,
+                /&lt;system&gt;/gi, /&lt;\/system&gt;/gi,
+                /&lt;\|endoftext\|&gt;/gi,
+                /&lt;\|im_start\|&gt;/gi, /&lt;\|im_end\|&gt;/gi,
+                /&lt;\|thought\|&gt;/gi
+            ];
+
+            specialTags.forEach(tag => {
+                formatted = formatted.replace(tag, '');
+            });
+
+            return formatted;
         }
 
         // Focus input on load

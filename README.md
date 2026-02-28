@@ -3,7 +3,7 @@
 # MIKLIUM LM
 ## miklium-lm-nano
 
-MIKLIUM LM is an advanced large language model developed by OpenAGI for the MIKLIUM ecosystem. We are introducing **miklium-lm-nano**, the most compact and accessible model within the MIKLIUM LM family, designed for rapid deployment and experimentation.
+MIKLIUM LM is an advanced large language model developed by OpenAGI for the MIKLIUM ecosystem. We are introducing **miklium-lm-nano**, the most compact and accessible model within the MIKLIUM LM family, designed for rapid deployment and experimentation, this model supports chain of thought reasoning.
 
 ## About the Model
 

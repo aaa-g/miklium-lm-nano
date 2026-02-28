@@ -727,6 +727,28 @@
             // First escape to prevent XSS
             let formatted = escapeHtml(text);
 
+            // Handle hiding everything before <ai>
+            // We also check for <think> in case thinking starts before <ai>
+            const aiTag = "&lt;ai&gt;";
+            const thinkTag = "&lt;think&gt;";
+            const aiIndex = formatted.toLowerCase().indexOf(aiTag.toLowerCase());
+            const thinkIndex = formatted.toLowerCase().indexOf(thinkTag.toLowerCase());
+
+            if (aiIndex !== -1) {
+                // If <think> exists and is before <ai>, include it
+                if (thinkIndex !== -1 && thinkIndex < aiIndex) {
+                    formatted = formatted.substring(thinkIndex);
+                } else {
+                    formatted = formatted.substring(aiIndex + aiTag.length);
+                }
+            } else if (thinkIndex !== -1) {
+                // If only <think> is found, start from it (hides earlier prompt echo)
+                formatted = formatted.substring(thinkIndex);
+            } else if (formatted.toLowerCase().includes("&lt;user&gt;")) {
+                // If it looks like we're still echoing the prompt, show nothing yet
+                return "";
+            }
+
             // Handle <think> tags
             // Use regex that handles the escaped version since we escaped above
             formatted = formatted.replace(/&lt;think&gt;/gi, '<span class="think-block">');
@@ -734,6 +756,7 @@
 
             // Hide special tags
             const specialTags = [
+                /&lt;ai&gt;/gi, /&lt;\/ai&gt;/gi,
                 /&lt;user&gt;/gi, /&lt;\/user&gt;/gi,
                 /&lt;bot&gt;/gi, /&lt;\/bot&gt;/gi,
                 /&lt;eos&gt;/gi, /&lt;bos&gt;/gi,

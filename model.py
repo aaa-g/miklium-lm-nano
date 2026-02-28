@@ -1,8 +1,11 @@
 import os
+import re
 import random
 import json
 import time
 import numpy as np
+
+word_level = True
 
 np.random.seed(42)
 random.seed(42)
@@ -11,12 +14,25 @@ training_data_path = 'assets/training_data/data.txt'
 with open(training_data_path, 'r') as f:
     text = f.read()
 
-# Character-level tokenizer
-uchars = sorted(list(set(text)))
+# Tokenizer logic
+def get_tokens(t):
+    if word_level:
+        # Regex to capture:
+        # 1. Tags like <user>, <ai>, <think>, </think>, <eos>
+        # 2. Words (including apostrophes)
+        # 3. Punctuation mark (single chars)
+        # 4. Whitespace (one or more spaces/newlines/tabs)
+        return re.findall(r"<[^>]+>|[\w']+|[^\w\s\n]|\s+", t)
+    else:
+        # Character-level tokenizer (Default)
+        return list(t)
+
+all_text_tokens = get_tokens(text)
+uchars = sorted(list(set(all_text_tokens)))
 vocab_size = len(uchars) + 1 # +1 for BOS/EOS
 BOS = len(uchars)
-token_to_idx = {ch: i for i, ch in enumerate(uchars)}
-idx_to_token = {i: ch for i, ch in enumerate(uchars)}
+token_to_idx = {t: i for i, t in enumerate(uchars)}
+idx_to_token = {i: t for i, t in enumerate(uchars)}
 idx_to_token[BOS] = "<|endoftext|>"
 
 # More robust data processing: concatenate into one long sequence
@@ -25,17 +41,19 @@ sections = text.split('<eos>')
 for sec in sections:
     if not sec.strip(): continue
     all_tokens.append(BOS)
-    all_tokens.extend([token_to_idx[ch] for ch in sec.strip() + " <eos>"])
+    # Re-attach <eos> for tokenization if it's the end of a section
+    sec_content = sec.strip() + " <eos>"
+    all_tokens.extend([token_to_idx[t] for t in get_tokens(sec_content) if t in token_to_idx])
 all_tokens = np.array(all_tokens)
 
 # Hyperparameters
 n_layer = 4
-n_embd = 128
-block_size = 256
+n_embd = 64
+block_size = 128
 n_head = 4
 head_dim = n_embd // n_head
 batch_size = 4
-learning_rate = 0.005 # Faster learning
+learning_rate = 0.008
 
 def init_matrix(nout, nin):
     # Xavier Init
@@ -189,7 +207,7 @@ m = {k: np.zeros_like(v) for k, v in params.items()}
 v_adam = {k: np.zeros_like(v) for k, v in params.items()}
 beta1, beta2, eps = 0.9, 0.95, 1e-8
 
-num_steps = 3500
+num_steps = 5000
 start_time = time.time()
 
 for step in range(num_steps):
@@ -235,7 +253,10 @@ with open(save_path, 'w') as f:
     json.dump(model_data, f)
 
 def generate(prompt, length=500, temp=0.5):
-    tokens = [BOS] + [token_to_idx[ch] for ch in prompt if ch in token_to_idx]
+    prompt_tokens = get_tokens(prompt)
+    tokens = [BOS] + [token_to_idx[t] for t in prompt_tokens if t in token_to_idx]
+    
+    start_offset = len(tokens)
     for _ in range(length):
         ctx = tokens[-block_size:]
         logits, _, _ = forward(np.array(ctx))
@@ -247,7 +268,7 @@ def generate(prompt, length=500, temp=0.5):
         tokens.append(next_token)
     
     out = ""
-    for t in tokens[len(prompt) + 1:]:
+    for t in tokens[start_offset:]:
         if t == BOS: break
         out += idx_to_token.get(t, "")
     return out

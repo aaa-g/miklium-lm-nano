@@ -565,7 +565,11 @@
         </div>
     </div>
 
+    <script src="inference.js"></script>
     <script>
+        const lm = new MikliumModel();
+        lm.load("miklium-lm-nano_502.7K.miklium_model").catch(e => console.error("Model load error:", e));
+
         const messagesContainer = document.getElementById('messagesContainer');
         const messageInput = document.getElementById('messageInput');
         const sendBtn = document.getElementById('sendBtn');
@@ -618,22 +622,53 @@
             messagesContainer.appendChild(typingDiv);
             scrollToBottom();
 
-            // Simulate response delay
-            setTimeout(() => {
+            // Generate AI response
+            setTimeout(async () => {
+                if (!lm.modelData) {
+                    typingDiv.remove();
+                    addMessage("Model is still loading... please wait a few seconds.", 'assistant');
+                    isLoading = false;
+                    sendBtn.disabled = false;
+                    messagesContainer.classList.remove('loading');
+                    return;
+                }
+
+                const prompt = "<user> " + message + " <eos> ";
+
                 typingDiv.remove();
-                const responses = [
-                    "That's a fascinating question! I'd be happy to help you explore this topic further. Could you tell me more about what aspect interests you most?",
-                    "Great question! Here's what I think about this:\n\nThis is a complex topic that involves multiple perspectives. Let me break it down for you step by step.",
-                    "I love the enthusiasm! This reminds me of how interconnected many concepts really are. Let me provide you with some insights.",
-                    "Absolutely! That's exactly the kind of thinking that drives innovation. Here's my take on it.",
-                    "Interesting approach! Let me think through this with you. There are several angles we could explore here."
-                ];
-                const response = responses[Math.floor(Math.random() * responses.length)];
-                addMessage(response, 'assistant');
+                const assistantDiv = document.createElement('div');
+                assistantDiv.className = 'message assistant';
+                const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                assistantDiv.innerHTML = `
+        <div class="message-content">
+          <div class="message-bubble"></div>
+          <div class="message-time">${time}</div>
+        </div>
+      `;
+                messagesContainer.appendChild(assistantDiv);
+                scrollToBottom();
+
+                const bubble = assistantDiv.querySelector('.message-bubble');
+                let fullResponse = "";
+
+                try {
+                    await lm.generate(prompt, 300, 0.4, async (chunk) => {
+                        fullResponse += chunk;
+                        bubble.innerHTML = escapeHtml(fullResponse);
+                        scrollToBottom();
+                        // Yield to UI thread to allow rendering
+                        await new Promise(r => setTimeout(r, 0));
+                    });
+                } catch (e) {
+                    console.error("Generation error:", e);
+                    fullResponse += "\n[Error generating response]";
+                    bubble.innerHTML = escapeHtml(fullResponse);
+                }
+
                 isLoading = false;
                 sendBtn.disabled = false;
                 messagesContainer.classList.remove('loading');
-            }, 1500 + Math.random() * 1500);
+            }, 50);
         }
 
         function addMessage(content, role) {

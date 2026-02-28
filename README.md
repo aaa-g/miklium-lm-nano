@@ -3,12 +3,31 @@
 # MIKLIUM LM
 ## miklium-lm-nano
 
-MIKLIUM LM is a large language model developed by OpenAGI for MIKLIUM.
-This is the nano model, the smallest model in the MIKLIUM LM family.
+MIKLIUM LM is an advanced large language model developed by OpenAGI for the MIKLIUM ecosystem. We are introducing **miklium-lm-nano**, the most compact and accessible model within the MIKLIUM LM family, designed for rapid deployment and experimentation.
 
-# About
-The model was trained with python.
-This is a foundation model, to make it more powerful you must add more data and train it for more epochs. The model comes pre-trained with a small dataset and a website is included in this repo to chat with it on a beautiful interface.
+## About the Model
+
+The model architecture and training pipeline are built entirely using Python. 
+
+As a **foundation model**, `miklium-lm-nano` is currently pre-trained on a smaller, curated dataset. While it demonstrates capable foundational reasoning, unlocking its full potential requires further re-training and  fine-tuning, feeding it expanded training datasets, and training across additional epochs. 
+
+This repository includes not only the model itself but also a hands-on, beautifully designed web interface to chat directly with the model and experience its capabilities firsthand.
+
+## Live Demo
+
+Experience `miklium-lm-nano` in action on our official web interface:
+[Test the Model Here](https://aaa-g.github.io/miklium-lm-nano/website/index)
+
+## Sample Interaction
+
+Here is an example demonstrating the prompt format and the reasoning capabilities of the model:
+
+```text
+Prompt: <user> What is the capital of France?
+Response: 
+<ai> <think> The user is asking for the capital of France. The capital of France is Paris. <eos>
+```
+
 ## License
 
 This model is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

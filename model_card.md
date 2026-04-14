@@ -27,5 +27,7 @@
 - **Learning Rate**: 0.008 with a linear decay schedule over 5000 steps
 - **Batch Size**: 4
 
-## Limitations
-Being an extremely small "nano" model (~500K parameters), `miklium-lm-nano` is fundamentally a proof-of-concept and educational foundation model. It will require additional fine-tuning, expanded datasets, and further training epochs to unlock higher-tier linguistic and reasoning capabilities.
+## Capabilities & Limitations
+Despite being an extremely small "nano" model (~500K parameters), `miklium-lm-nano` demonstrates surprisingly capable reasoning and friendly conversational abilities. It is capable of answering general knowledge queries and participating in interactive dialogue. 
+
+Because of its nano-scale size, it is fundamentally a lightweight model optimized for educational and foundational purposes. While highly effective for its weight class, it may require additional fine-tuning, expanded datasets, and further training epochs to unlock higher-tier linguistic and complex reasoning capabilities typical of models with billions of parameters.

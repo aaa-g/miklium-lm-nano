@@ -7,6 +7,8 @@ MIKLIUM LM is an advanced large language model developed by OpenAGI for the MIKL
 
 ## About the Model
 
+**Total Parameters:** ~502.7K
+
 The model architecture and training pipeline are built entirely using Python. 
 
 As a **foundation model**, `miklium-lm-nano` is currently pre-trained on a smaller, curated dataset. While it demonstrates capable foundational reasoning, unlocking its full potential requires further re-training and  fine-tuning, feeding it expanded training datasets, and training across additional epochs. 
